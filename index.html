@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>GREEN API Test</title>
+</head>
+<body>
+
+<h2>GREEN API</h2>
+
+<p>ID Instance:</p>
+<input id="idInstance">
+
+<p>Api Token:</p>
+<input id="apiToken">
+
+<br><br>
+
+<button onclick="getSettings()">getSettings</button>
+<button onclick="getState()">getStateInstance</button>
+
+<br><br>
+
+<p>Телефон (пример: 77071234567):</p>
+<input id="phone">
+
+<p>Сообщение:</p>
+<input id="message">
+
+<button onclick="sendMessage()">sendMessage</button>
+
+<br><br>
+
+<p>Ссылка на файл:</p>
+<input id="fileUrl">
+
+<p>Имя файла:</p>
+<input id="fileName">
+
+<button onclick="sendFile()">sendFileByUrl</button>
+
+<br><br>
+
+<p>Ответ:</p>
+<textarea id="result" rows="10" cols="60" readonly></textarea>
+
+<script>
+
+// формируем URL
+function getUrl(method) {
+    let id = document.getElementById("idInstance").value;
+    let token = document.getElementById("apiToken").value;
+    return "https://api.green-api.com/waInstance" + id + "/" + method + "/" + token;
+}
+
+// вывод ответа
+function show(data) {
+    document.getElementById("result").value = JSON.stringify(data, null, 2);
+}
+
+// getSettings
+async function getSettings() {
+    let res = await fetch(getUrl("getSettings"));
+    let data = await res.json();
+    show(data);
+}
+
+// getStateInstance
+async function getState() {
+    let res = await fetch(getUrl("getStateInstance"));
+    let data = await res.json();
+    show(data);
+}
+
+// sendMessage
+async function sendMessage() {
+    let phone = document.getElementById("phone").value;
+    let message = document.getElementById("message").value;
+
+    let res = await fetch(getUrl("sendMessage"), {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+            chatId: phone + "@c.us",
+            message: message
+        })
+    });
+
+    let data = await res.json();
+    show(data);
+}
+
+// sendFileByUrl
+async function sendFile() {
+    let phone = document.getElementById("phone").value;
+    let url = document.getElementById("fileUrl").value;
+    let name = document.getElementById("fileName").value;
+
+    let res = await fetch(getUrl("sendFileByUrl"), {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+            chatId: phone + "@c.us",
+            urlFile: url,
+            fileName: name
+        })
+    });
+
+    let data = await res.json();
+    show(data);
+}
+
+</script>
+
+</body>
+</html>
