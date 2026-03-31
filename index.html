@@ -1,115 +1,112 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <title>GREEN API Test</title>
+<meta charset="UTF-8">
+<title>GREEN API Test</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    padding: 20px;
+    gap: 20px;
+  }
+  .left {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .left input, .left textarea, .left button {
+    padding: 8px;
+    font-size: 14px;
+  }
+  .right {
+    flex: 1;
+  }
+  .right textarea {
+    width: 100%;
+    height: 500px;
+    font-family: monospace;
+    font-size: 13px;
+    padding: 10px;
+  }
+  button {
+    cursor: pointer;
+  }
+</style>
 </head>
 <body>
 
-<h2>GREEN API</h2>
+<div class="left">
+  <!-- ID и Token -->
+  <input id="idInstance" placeholder="idInstance">
+  <input id="apiToken" placeholder="ApiTokenInstance">
+  <button onclick="getSettings()">getSettings</button>
+  <button onclick="getStateInstance()">getStateInstance</button>
 
-<p>ID Instance:</p>
-<input id="idInstance">
+  <!-- Send Message -->
+  <input id="phoneMsg" placeholder="Телефон (пример: 77071234567)">
+  <textarea id="textMsg" placeholder="Сообщение"></textarea>
+  <button onclick="sendMessage()">sendMessage</button>
 
-<p>Api Token:</p>
-<input id="apiToken">
+  <!-- Send File -->
+  <input id="phoneFile" placeholder="Телефон (пример: 77071234567)">
+  <input id="fileUrl" placeholder="Ссылка на файл">
+  <input id="fileName" placeholder="Имя файла">
+  <button onclick="sendFileByUrl()">sendFileByUrl</button>
+</div>
 
-<br><br>
-
-<button onclick="getSettings()">getSettings</button>
-<button onclick="getState()">getStateInstance</button>
-
-<br><br>
-
-<p>Телефон (пример: 77071234567):</p>
-<input id="phone">
-
-<p>Сообщение:</p>
-<input id="message">
-
-<button onclick="sendMessage()">sendMessage</button>
-
-<br><br>
-
-<p>Ссылка на файл:</p>
-<input id="fileUrl">
-
-<p>Имя файла:</p>
-<input id="fileName">
-
-<button onclick="sendFile()">sendFileByUrl</button>
-
-<br><br>
-
-<p>Ответ:</p>
-<textarea id="result" rows="10" cols="60" readonly></textarea>
+<div class="right">
+  <textarea id="response" readonly placeholder="Ответ"></textarea>
+</div>
 
 <script>
+  function show(data) {
+    document.getElementById("response").value = JSON.stringify(data, null, 2);
+  }
 
-// формируем URL
-function getUrl(method) {
-    let id = document.getElementById("idInstance").value;
-    let token = document.getElementById("apiToken").value;
-    return "https://api.green-api.com/waInstance" + id + "/" + method + "/" + token;
-}
+  function getUrl(method) {
+    const id = document.getElementById("idInstance").value;
+    const token = document.getElementById("apiToken").value;
+    return `https://api.green-api.com/waInstance${id}/${method}/${token}`;
+  }
 
-// вывод ответа
-function show(data) {
-    document.getElementById("result").value = JSON.stringify(data, null, 2);
-}
-
-// getSettings
-async function getSettings() {
-    let res = await fetch(getUrl("getSettings"));
-    let data = await res.json();
+  async function getSettings() {
+    const res = await fetch(getUrl("getSettings"));
+    const data = await res.json();
     show(data);
-}
+  }
 
-// getStateInstance
-async function getState() {
-    let res = await fetch(getUrl("getStateInstance"));
-    let data = await res.json();
+  async function getStateInstance() {
+    const res = await fetch(getUrl("getStateInstance"));
+    const data = await res.json();
     show(data);
-}
+  }
 
-// sendMessage
-async function sendMessage() {
-    let phone = document.getElementById("phone").value;
-    let message = document.getElementById("message").value;
-
-    let res = await fetch(getUrl("sendMessage"), {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({
-            chatId: phone + "@c.us",
-            message: message
-        })
+  async function sendMessage() {
+    const phone = document.getElementById("phoneMsg").value;
+    const message = document.getElementById("textMsg").value;
+    const res = await fetch(getUrl("sendMessage"), {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({ chatId: phone + "@c.us", message })
     });
-
-    let data = await res.json();
+    const data = await res.json();
     show(data);
-}
+  }
 
-// sendFileByUrl
-async function sendFile() {
-    let phone = document.getElementById("phone").value;
-    let url = document.getElementById("fileUrl").value;
-    let name = document.getElementById("fileName").value;
-
-    let res = await fetch(getUrl("sendFileByUrl"), {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({
-            chatId: phone + "@c.us",
-            urlFile: url,
-            fileName: name
-        })
+  async function sendFileByUrl() {
+    const phone = document.getElementById("phoneFile").value;
+    const url = document.getElementById("fileUrl").value;
+    const name = document.getElementById("fileName").value;
+    const res = await fetch(getUrl("sendFileByUrl"), {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({ chatId: phone + "@c.us", urlFile: url, fileName: name })
     });
-
-    let data = await res.json();
+    const data = await res.json();
     show(data);
-}
-
+  }
 </script>
 
 </body>
