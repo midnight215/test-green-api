@@ -3,30 +3,66 @@
 <head>
 <meta charset="UTF-8">
 <title>GREEN API Test</title>
+
 <style>
-  body { font-family: Arial; display: flex; gap: 20px; padding: 20px; }
-  .left { flex: 1; display: flex; flex-direction: column; gap: 10px; }
-  input, textarea, button { padding: 8px; font-size: 14px; }
-  .right textarea { width: 100%; height: 500px; font-family: monospace; font-size: 13px; padding: 10px; }
-  button { cursor: pointer; }
+  body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    padding: 20px;
+    gap: 20px;
+  }
+
+  .left {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .left input,
+  .left textarea,
+  .left button {
+    padding: 8px;
+    font-size: 14px;
+  }
+
+  .right {
+    flex: 1;
+  }
+
+  .right textarea {
+    width: 100%;
+    height: 500px;
+    font-family: monospace;
+    font-size: 13px;
+    padding: 10px;
+  }
+
+  button {
+    cursor: pointer;
+  }
 </style>
 </head>
+
 <body>
 
 <div class="left">
+  <!-- ID и Token -->
   <input id="idInstance" placeholder="idInstance">
   <input id="apiToken" placeholder="ApiTokenInstance">
-  <button onclick="callApi('getSettings')">getSettings</button>
-  <button onclick="callApi('getStateInstance')">getStateInstance</button>
+  <button onclick="getSettings()">getSettings</button>
+  <button onclick="getStateInstance()">getStateInstance</button>
 
+  <!-- Send Message -->
   <input id="phoneMsg" placeholder="Телефон (пример: 77071234567)">
   <textarea id="textMsg" placeholder="Сообщение"></textarea>
   <button onclick="sendMessage()">sendMessage</button>
 
+  <!-- Send File -->
   <input id="phoneFile" placeholder="Телефон (пример: 77071234567)">
   <input id="fileUrl" placeholder="Ссылка на файл">
   <input id="fileName" placeholder="Имя файла">
-  <button onclick="sendFile()">sendFileByUrl</button>
+  <button onclick="sendFileByUrl()">sendFileByUrl</button>
 </div>
 
 <div class="right">
@@ -34,45 +70,88 @@
 </div>
 
 <script>
-function show(data) {
-  document.getElementById("response").value = JSON.stringify(data, null, 2);
-}
-
-function getUrl(method) {
-  const id = document.getElementById("idInstance").value;
-  const token = document.getElementById("apiToken").value;
-  return `https://api.green-api.com/waInstance${id}/${method}/${token}`;
-}
-
-async function callApi(method, body=null) {
-  try {
-    const res = await fetch(getUrl(method), body ? {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body)
-    } : { method: "GET" });
-
-    const data = await res.json();
-    show(data);
-  } catch(err) {
-    show({ error: err.message });
+  function show(data) {
+    document.getElementById("response").value =
+      JSON.stringify(data, null, 2);
   }
-}
 
-function sendMessage() {
-  const phone = document.getElementById("phoneMsg").value;
-  const message = document.getElementById("textMsg").value;
-  if (!phone || !message) return alert("Введите номер и сообщение");
-  callApi('sendMessage', { chatId: phone+'@c.us', message });
-}
+  function getUrl(method) {
+    const id = document.getElementById("idInstance").value.trim();
+    const token = document.getElementById("apiToken").value.trim();
 
-function sendFile() {
-  const phone = document.getElementById("phoneFile").value;
-  const url = document.getElementById("fileUrl").value;
-  const name = document.getElementById("fileName").value;
-  if (!phone || !url || !name) return alert("Заполните все поля");
-  callApi('sendFileByUrl', { chatId: phone+'@c.us', urlFile: url, fileName: name });
-}
+    if (!id || !token) {
+      alert("Пожалуйста, заполните idInstance и ApiTokenInstance!");
+      throw new Error("idInstance или ApiTokenInstance пустые");
+    }
+
+    return `https://api.green-api.com/waInstance${id}/${method}/${token}`;
+  }
+
+  async function fetchApi(method, body = null) {
+    try {
+      const options = body
+        ? {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+          }
+        : { method: "GET" };
+
+      const res = await fetch(getUrl(method), options);
+
+      if (!res.ok) {
+        show({
+          error: `Ошибка ${res.status}: ${res.statusText}`,
+        });
+        return;
+      }
+
+      const data = await res.json();
+      show(data);
+    } catch (err) {
+      show({ error: err.message });
+    }
+  }
+
+  function getSettings() {
+    fetchApi("getSettings");
+  }
+
+  function getStateInstance() {
+    fetchApi("getStateInstance");
+  }
+
+  function sendMessage() {
+    const phone = document.getElementById("phoneMsg").value.trim();
+    const message = document.getElementById("textMsg").value.trim();
+
+    if (!phone || !message) {
+      alert("Введите номер телефона и сообщение!");
+      return;
+    }
+
+    fetchApi("sendMessage", {
+      chatId: phone + "@c.us",
+      message: message,
+    });
+  }
+
+  function sendFileByUrl() {
+    const phone = document.getElementById("phoneFile").value.trim();
+    const url = document.getElementById("fileUrl").value.trim();
+    const name = document.getElementById("fileName").value.trim();
+
+    if (!phone || !url || !name) {
+      alert("Введите номер телефона, ссылку на файл и имя файла!");
+      return;
+    }
+
+    fetchApi("sendFileByUrl", {
+      chatId: phone + "@c.us",
+      urlFile: url,
+      fileName: name,
+    });
+  }
 </script>
 
 </body>
